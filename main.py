@@ -1,5 +1,6 @@
 import time
-from typing import List
+from dataclasses import dataclass
+from typing import List, Optional
 
 from selenium import webdriver
 from selenium.webdriver import ActionChains, Keys
@@ -10,16 +11,27 @@ from selenium.webdriver.remote.webelement import WebElement
 PRICECHARTING_URL = "https://www.pricecharting.com/console/gamecube"
 
 
+@dataclass
+class GameData:
+    """Represents a video game item and its estimated prices."""
+
+    title: str
+    price_loose: Optional[float]
+    price_cib: Optional[float]
+    price_new: Optional[float]
+
+
 def main():
     driver = webdriver.Chrome()
     driver.get(PRICECHARTING_URL)
-    print(f"Driver title: {driver.title}")
     driver.implicitly_wait(2)
 
     item_count = get_item_count(driver)
 
     games_table = driver.find_element(by=By.ID, value="games_table")
     game_items = load_items(driver, games_table, item_count)
+
+    parsed_game_data = [parse_item(item) for item in game_items]
 
     driver.quit()
 
@@ -53,6 +65,32 @@ def load_items(driver: WebDriver, games_table: WebElement, item_count: int) -> L
         items_currently_loaded = len(games_table_rows)
 
     return games_table_rows
+
+
+def parse_item(game_item: WebElement) -> GameData:
+    elements = game_item.find_elements(by=By.TAG_NAME, value="td")
+    title = elements[1].text
+
+    price_loose = None
+    if elements[2].text:
+        price_loose = _parse_price_string(elements[2].text)
+
+    price_cib = None
+    if elements[3].text:
+        price_cib = _parse_price_string(elements[3].text)
+
+    price_new = None
+    if elements[4].text:
+        price_new = _parse_price_string(elements[4].text)
+
+    return GameData(title, price_loose, price_cib, price_new)
+
+
+def _parse_price_string(price_string: str) -> Optional[float]:
+    value = None
+    if price_string:
+        value = float(price_string.lstrip("$").replace(",", ""))
+    return value
 
 
 if __name__ == "__main__":
