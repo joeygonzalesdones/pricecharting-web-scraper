@@ -8,7 +8,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 
-PRICECHARTING_URL = "https://www.pricecharting.com/console/gamecube"
+CONSOLE = "gamecube"
+PRICECHARTING_URL = f"https://www.pricecharting.com/console/{CONSOLE}?sort=popularity&exclude-hardware=true"
 
 
 @dataclass
@@ -34,6 +35,7 @@ def main():
     parsed_game_data = [parse_item(item) for item in game_items]
 
     driver.quit()
+    print(f"Parsed {len(parsed_game_data)} / {item_count} items.")
 
 
 def get_item_count(driver: WebDriver) -> int:
