@@ -28,34 +28,51 @@ def main():
     driver.get(PRICECHARTING_URL)
     driver.implicitly_wait(2)
 
-    item_count = get_item_count(driver)
+    game_count = get_game_count(driver)
+    print(f"Game count: {game_count}")
+
+    element = driver.find_element(by=By.XPATH, value="//*[@id='console-header']/p/b")
+    print(f"element.text: '{element.text}'")
+    item_count = element.text.split(" / ")[1].split()[0]
+    print(f"item_count: '{item_count}'")
+
+    # for _ in range(20):
+    #     rows = driver.find_elements(by=By.XPATH, value="//*[@id='games_table']/tbody/tr")
+    #     print(f"{len(rows)} rows loaded")
+    #     ActionChains(driver).send_keys_to_element(rows[0], Keys.END).perform()
+    #     time.sleep(0.5)
+
+    return
+
+
+def main_old():
+    driver = webdriver.Chrome()
+    driver.get(PRICECHARTING_URL)
+    driver.implicitly_wait(2)
+
+    game_count = get_game_count(driver)
 
     games_table = driver.find_element(by=By.ID, value="games_table")
-    game_items = load_items(driver, games_table, item_count)
+    game_items = load_items(driver, games_table, game_count)
 
     parsed_game_data = [parse_item(item, popularity_rank) for popularity_rank, item in enumerate(game_items)]
 
     driver.quit()
-    print(f"Parsed {len(parsed_game_data)} / {item_count} items.")
+    print(f"Parsed {len(parsed_game_data)} / {game_count} items.")
     print(f"First item: {parsed_game_data[0]}")
     print(f"Last item: {parsed_game_data[-1]}")
 
 
-def get_item_count(driver: WebDriver) -> int:
-    console_header = driver.find_element(by=By.ID, value="console-header")
-    console_header_elements = console_header.find_elements(by=By.TAG_NAME, value="p")
+def get_game_count(driver: WebDriver) -> int:
+    element = driver.find_element(by=By.XPATH, value="//*[@id='console-header']/p/b")
+    game_count = element.text.split(" / ")[1].split()[0]
 
-    item_count = None
-    for element in console_header_elements:
-        if element.text.startswith("You own:"):
-            item_count = element.text.split(" / ")[1].split()[0]
+    if game_count is None:
+        raise RuntimeError('Game count ("You own: ### / ### items") not found')
+    if not game_count.isdigit():
+        raise RuntimeError(f'Game count "{game_count}" not a valid number')
 
-    if item_count is None:
-        raise RuntimeError('Item count element ("You own: ### / ### items") not found')
-    if not item_count.isdigit():
-        raise RuntimeError(f'Item count element "{item_count}" not a valid number')
-
-    return int(item_count)
+    return int(game_count)
 
 
 def load_items(driver: WebDriver, games_table: WebElement, item_count: int) -> List[WebElement]:
