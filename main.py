@@ -17,6 +17,7 @@ class GameData:
     """Represents a video game item and its estimated prices."""
 
     title: str
+    popularity_rank: Optional[int]
     price_loose: Optional[float]
     price_cib: Optional[float]
     price_new: Optional[float]
@@ -32,10 +33,12 @@ def main():
     games_table = driver.find_element(by=By.ID, value="games_table")
     game_items = load_items(driver, games_table, item_count)
 
-    parsed_game_data = [parse_item(item) for item in game_items]
+    parsed_game_data = [parse_item(item, popularity_rank) for popularity_rank, item in enumerate(game_items)]
 
     driver.quit()
     print(f"Parsed {len(parsed_game_data)} / {item_count} items.")
+    print(f"First item: {parsed_game_data[0]}")
+    print(f"Last item: {parsed_game_data[-1]}")
 
 
 def get_item_count(driver: WebDriver) -> int:
@@ -69,7 +72,7 @@ def load_items(driver: WebDriver, games_table: WebElement, item_count: int) -> L
     return games_table_rows
 
 
-def parse_item(game_item: WebElement) -> GameData:
+def parse_item(game_item: WebElement, popularity_rank: Optional[int] = None) -> GameData:
     elements = game_item.find_elements(by=By.TAG_NAME, value="td")
     title = elements[1].text
 
@@ -85,7 +88,7 @@ def parse_item(game_item: WebElement) -> GameData:
     if elements[4].text:
         price_new = _parse_price_string(elements[4].text)
 
-    return GameData(title, price_loose, price_cib, price_new)
+    return GameData(title, popularity_rank, price_loose, price_cib, price_new)
 
 
 def _parse_price_string(price_string: str) -> Optional[float]:
