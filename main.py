@@ -9,6 +9,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 
 CONSOLE = "gamecube"
+LOADING_LOOP_SLEEP_DURATION = 1.0
 PRICECHARTING_URL = f"https://www.pricecharting.com/console/{CONSOLE}?sort=popularity&exclude-hardware=true"
 
 
@@ -46,7 +47,7 @@ def main():
     print()
 
     start_time = time.time()
-    game_table_rows = load_games_as_dom_elements(driver, game_count)
+    game_table_rows = load_games_as_dom_elements(driver, game_count, LOADING_LOOP_SLEEP_DURATION)
     elapsed_time = time.time() - start_time
     total_games_loaded = len(game_table_rows)
 
@@ -90,12 +91,22 @@ def get_game_count(driver: WebDriver) -> int:
     return int(game_count)
 
 
-def load_games_as_dom_elements(driver: WebDriver, game_count: int) -> List[WebElement]:
+def load_games_as_dom_elements(
+        driver: WebDriver,
+        game_count: int,
+        sleep_duration: float = 1.0
+) -> List[WebElement]:
     """Retrieves the DOM elements on the current page that correspond to the data entries
     for each game.
 
+    Rather than loading all content immediately, the page loads more content once the current
+    bottom is reached. This function iteratively loads the available game entries, jumps to
+    the end of the page to continue loading, and sleeps so the web server can catch up,
+    stopping once the expected number of game entries have been loaded.
+
     :param driver: The web browser controller
     :param game_count: The number of games to load
+    :param sleep_duration: The number of seconds to sleep between attempts to load more content.
     :return: A list of DOM elements, where each element contains data for a single game
     """
 
@@ -103,7 +114,7 @@ def load_games_as_dom_elements(driver: WebDriver, game_count: int) -> List[WebEl
     while len(game_elements) < game_count:
         print(f"{len(game_elements)} games loaded")
         ActionChains(driver).send_keys_to_element(game_elements[0], Keys.END).perform()
-        time.sleep(1)
+        time.sleep(sleep_duration)
         game_elements = driver.find_elements(by=By.XPATH, value="//*[@id='games_table']/tbody/tr")
     return game_elements
 
