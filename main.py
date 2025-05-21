@@ -33,7 +33,7 @@ def main():
     print()
 
     start_time = time.time()
-    game_table_rows = load_games(driver, game_count)
+    game_table_rows = load_games_as_dom_elements(driver, game_count)
     elapsed_time = time.time() - start_time
     total_games_loaded = len(game_table_rows)
 
@@ -68,14 +68,14 @@ def get_game_count(driver: WebDriver) -> int:
     return int(game_count)
 
 
-def load_games(driver: WebDriver, game_count: int) -> List[WebElement]:
-    game_table_rows = driver.find_elements(by=By.XPATH, value="//*[@id='games_table']/tbody/tr")
-    while len(game_table_rows) < game_count:
-        print(f"{len(game_table_rows)} games loaded")
-        ActionChains(driver).send_keys_to_element(game_table_rows[0], Keys.END).perform()
+def load_games_as_dom_elements(driver: WebDriver, game_count: int) -> List[WebElement]:
+    game_elements = driver.find_elements(by=By.XPATH, value="//*[@id='games_table']/tbody/tr")
+    while len(game_elements) < game_count:
+        print(f"{len(game_elements)} games loaded")
+        ActionChains(driver).send_keys_to_element(game_elements[0], Keys.END).perform()
         time.sleep(1)
-        game_table_rows = driver.find_elements(by=By.XPATH, value="//*[@id='games_table']/tbody/tr")
-    return game_table_rows
+        game_elements = driver.find_elements(by=By.XPATH, value="//*[@id='games_table']/tbody/tr")
+    return game_elements
 
 
 def parse_game_data(game_element: WebElement, popularity_rank: Optional[int] = None) -> GameData:
