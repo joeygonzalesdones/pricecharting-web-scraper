@@ -30,6 +30,7 @@ def main():
 
     game_count = get_game_count(driver)
     print(f"Total # games: {game_count}")
+    print()
 
     start_time = time.time()
     game_table_rows = load_games(driver, game_count)
@@ -41,6 +42,18 @@ def main():
     print()
     print(f"First game text: '{game_table_rows[0].text}'")
     print(f"Last game text: '{game_table_rows[-1].text}'")
+    print()
+
+    start_time = time.time()
+    parsed_game_data = [parse_game_data(element, rank) for rank, element in enumerate(game_table_rows)]
+    elapsed_time = time.time() - start_time
+    print(f"Parsed games in {elapsed_time:.3f} seconds")
+    print()
+
+    first_game = parsed_game_data[0]
+    last_game = parsed_game_data[-1]
+    print(f"First game: {first_game}")
+    print(f"Last game: {last_game}")
 
 
 def get_game_count(driver: WebDriver) -> int:
@@ -65,23 +78,25 @@ def load_games(driver: WebDriver, game_count: int) -> List[WebElement]:
     return game_table_rows
 
 
-def parse_game_data(game_item: WebElement, popularity_rank: Optional[int] = None) -> GameData:
-    elements = game_item.find_elements(by=By.TAG_NAME, value="td")
-    title = elements[1].text
+def parse_game_data(game_element: WebElement, popularity_rank: Optional[int] = None) -> GameData:
+    title_element = game_element.find_element(by=By.CLASS_NAME, value="title")
 
-    price_loose = None
-    if elements[2].text:
-        price_loose = _parse_price_string(elements[2].text)
+    price_used = None
+    used_price_element = game_element.find_element(by=By.CLASS_NAME, value="used_price")
+    if used_price_element.text:
+        price_used = _parse_price_string(used_price_element.text)
 
     price_cib = None
-    if elements[3].text:
-        price_cib = _parse_price_string(elements[3].text)
+    cib_price_element = game_element.find_element(by=By.CLASS_NAME, value="cib_price")
+    if cib_price_element.text:
+        price_cib = _parse_price_string(cib_price_element.text)
 
     price_new = None
-    if elements[4].text:
-        price_new = _parse_price_string(elements[4].text)
+    new_price_element = game_element.find_element(by=By.CLASS_NAME, value="new_price")
+    if new_price_element.text:
+        price_new = _parse_price_string(new_price_element.text)
 
-    return GameData(title, popularity_rank, price_loose, price_cib, price_new)
+    return GameData(title_element.text, popularity_rank, price_used, price_cib, price_new)
 
 
 def _parse_price_string(price_string: str) -> Optional[float]:
