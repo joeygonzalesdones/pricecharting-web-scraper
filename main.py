@@ -79,24 +79,12 @@ def load_games(driver: WebDriver, game_count: int) -> List[WebElement]:
 
 
 def parse_game_data(game_element: WebElement, popularity_rank: Optional[int] = None) -> GameData:
-    title_element = game_element.find_element(by=By.CLASS_NAME, value="title")
-
-    price_used = None
-    used_price_element = game_element.find_element(by=By.CLASS_NAME, value="used_price")
-    if used_price_element.text:
-        price_used = _parse_price_string(used_price_element.text)
-
-    price_cib = None
-    cib_price_element = game_element.find_element(by=By.CLASS_NAME, value="cib_price")
-    if cib_price_element.text:
-        price_cib = _parse_price_string(cib_price_element.text)
-
-    price_new = None
-    new_price_element = game_element.find_element(by=By.CLASS_NAME, value="new_price")
-    if new_price_element.text:
-        price_new = _parse_price_string(new_price_element.text)
-
-    return GameData(title_element.text, popularity_rank, price_used, price_cib, price_new)
+    columns = game_element.find_elements(by=By.TAG_NAME, value="td")
+    title = columns[1].text
+    price_used = _parse_price_string(columns[2].text)
+    price_cib = _parse_price_string(columns[3].text)
+    price_new = _parse_price_string(columns[4].text)
+    return GameData(title, popularity_rank, price_used, price_cib, price_new)
 
 
 def _parse_price_string(price_string: str) -> Optional[float]:
