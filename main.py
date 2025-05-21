@@ -88,10 +88,9 @@ def parse_game_data(game_element: WebElement, popularity_rank: Optional[int] = N
 
 
 def _parse_price_string(price_string: str) -> Optional[float]:
-    value = None
     if price_string:
-        value = float(price_string.lstrip("$").replace(",", ""))
-    return value
+        return float(price_string.lstrip("$").replace(",", ""))
+    return None
 
 
 if __name__ == "__main__":
