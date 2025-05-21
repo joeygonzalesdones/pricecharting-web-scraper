@@ -1,16 +1,14 @@
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime
 from typing import List, Optional
 
-from selenium import webdriver
 from selenium.webdriver import ActionChains, Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 
-CONSOLE = "gamecube"
 LOADING_LOOP_SLEEP_DURATION = 1.0
-PRICECHARTING_URL = f"https://www.pricecharting.com/console/{CONSOLE}?sort=popularity&exclude-hardware=true"
 
 
 @dataclass
@@ -37,21 +35,28 @@ class GameData:
     price_new: Optional[float]
 
 
-def main():
-    driver = webdriver.Chrome()
-    driver.get(PRICECHARTING_URL)
-    driver.implicitly_wait(2)
+@dataclass
+class ConsoleData:
+    console: str
+    console_page_url: str
+    access_time: datetime
+    game_data_list: List[GameData] = field(default_factory=list)
 
+
+def scrape_console_page(driver: WebDriver) -> ConsoleData:
+    access_time = datetime.now()
+    chart_title_element = driver.find_element(by=By.XPATH, value="//*[@id='highcharts-index']/h2")
+    console_name = chart_title_element.text.replace("PriceCharting Index: ", "")
     game_count = get_game_count(driver)
-
-    start_time = time.time()
     game_table_rows = load_games_as_dom_elements(driver, game_count, LOADING_LOOP_SLEEP_DURATION)
-    loading_duration = time.time() - start_time
-
-    start_time = time.time()
     parsed_game_data = [parse_game_data(element, rank) for rank, element in
                         enumerate(game_table_rows)]
-    parsing_duration = time.time() - start_time
+    return ConsoleData(
+        console=console_name,
+        console_page_url=driver.current_url,
+        access_time=access_time,
+        game_data_list=parsed_game_data
+    )
 
 
 def get_game_count(driver: WebDriver) -> int:
@@ -130,7 +135,3 @@ def _parse_price_string(price_string: str) -> Optional[float]:
     if price_string:
         return float(price_string.lstrip("$").replace(",", ""))
     return None
-
-
-if __name__ == "__main__":
-    main()
