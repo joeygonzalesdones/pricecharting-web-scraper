@@ -65,7 +65,7 @@ def load_games(driver: WebDriver, game_count: int) -> List[WebElement]:
     return game_table_rows
 
 
-def parse_item(game_item: WebElement, popularity_rank: Optional[int] = None) -> GameData:
+def parse_game_data(game_item: WebElement, popularity_rank: Optional[int] = None) -> GameData:
     elements = game_item.find_elements(by=By.TAG_NAME, value="td")
     title = elements[1].text
 
