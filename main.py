@@ -43,32 +43,15 @@ def main():
     driver.implicitly_wait(2)
 
     game_count = get_game_count(driver)
-    print(f"Total # games: {game_count}")
-    print()
 
     start_time = time.time()
     game_table_rows = load_games_as_dom_elements(driver, game_count, LOADING_LOOP_SLEEP_DURATION)
     elapsed_time = time.time() - start_time
-    total_games_loaded = len(game_table_rows)
-
-    print(f"Loaded {total_games_loaded}/{game_count} games in {elapsed_time:.3f} seconds")
-    print(f"({elapsed_time / total_games_loaded} seconds/game)")
-    print()
-    print(f"First game text: '{game_table_rows[0].text}'")
-    print(f"Last game text: '{game_table_rows[-1].text}'")
-    print()
 
     start_time = time.time()
     parsed_game_data = [parse_game_data(element, rank) for rank, element in
                         enumerate(game_table_rows)]
     elapsed_time = time.time() - start_time
-    print(f"Parsed games in {elapsed_time:.3f} seconds")
-    print()
-
-    first_game = parsed_game_data[0]
-    last_game = parsed_game_data[-1]
-    print(f"First game: {first_game}")
-    print(f"Last game: {last_game}")
 
 
 def get_game_count(driver: WebDriver) -> int:
@@ -112,7 +95,6 @@ def load_games_as_dom_elements(
 
     game_elements = driver.find_elements(by=By.XPATH, value="//*[@id='games_table']/tbody/tr")
     while len(game_elements) < game_count:
-        print(f"{len(game_elements)} games loaded")
         ActionChains(driver).send_keys_to_element(game_elements[0], Keys.END).perform()
         time.sleep(sleep_duration)
         game_elements = driver.find_elements(by=By.XPATH, value="//*[@id='games_table']/tbody/tr")
