@@ -1,6 +1,6 @@
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import List, Optional
 
 from selenium.webdriver import ActionChains, Keys
@@ -58,7 +58,7 @@ def scrape_console_page(driver: WebDriver) -> ConsoleData:
     :return: An object grouping data for the console and its games
     """
 
-    access_time = datetime.now()
+    access_time = datetime.now(UTC)
     chart_title_element = driver.find_element(by=By.XPATH, value="//*[@id='highcharts-index']/h2")
     console_name = chart_title_element.text.replace("PriceCharting Index: ", "")
     game_count = get_game_count(driver)
