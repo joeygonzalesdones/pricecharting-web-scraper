@@ -17,6 +17,7 @@ class GameData:
     """Represents a video game item and its estimated prices."""
 
     title: str
+    game_page_url: str
     popularity_rank: Optional[int]
     price_loose: Optional[float]
     price_cib: Optional[float]
@@ -80,11 +81,13 @@ def load_games_as_dom_elements(driver: WebDriver, game_count: int) -> List[WebEl
 
 def parse_game_data(game_element: WebElement, popularity_rank: Optional[int] = None) -> GameData:
     columns = game_element.find_elements(by=By.TAG_NAME, value="td")
-    title = columns[1].text
+    title_element = columns[1]
+    title = title_element.text
+    game_page_url = title_element.find_element(by=By.TAG_NAME, value="a").get_attribute(name="href")
     price_used = _parse_price_string(columns[2].text)
     price_cib = _parse_price_string(columns[3].text)
     price_new = _parse_price_string(columns[4].text)
-    return GameData(title, popularity_rank, price_used, price_cib, price_new)
+    return GameData(title, game_page_url, popularity_rank, price_used, price_cib, price_new)
 
 
 def _parse_price_string(price_string: str) -> Optional[float]:
