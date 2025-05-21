@@ -46,12 +46,12 @@ def main():
 
     start_time = time.time()
     game_table_rows = load_games_as_dom_elements(driver, game_count, LOADING_LOOP_SLEEP_DURATION)
-    elapsed_time = time.time() - start_time
+    loading_duration = time.time() - start_time
 
     start_time = time.time()
     parsed_game_data = [parse_game_data(element, rank) for rank, element in
                         enumerate(game_table_rows)]
-    elapsed_time = time.time() - start_time
+    parsing_duration = time.time() - start_time
 
 
 def get_game_count(driver: WebDriver) -> int:
