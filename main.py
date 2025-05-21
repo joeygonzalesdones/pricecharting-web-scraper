@@ -29,38 +29,23 @@ def main():
     driver.implicitly_wait(2)
 
     game_count = get_game_count(driver)
-    print(f"Game count: {game_count}")
+    print(f"Total # games: {game_count}")
 
-    element = driver.find_element(by=By.XPATH, value="//*[@id='console-header']/p/b")
-    print(f"element.text: '{element.text}'")
-    item_count = element.text.split(" / ")[1].split()[0]
-    print(f"item_count: '{item_count}'")
+    start_time = time.time()
+    game_table_rows = driver.find_elements(by=By.XPATH, value="//*[@id='games_table']/tbody/tr")
+    while len(game_table_rows) < game_count:
+        print(f"{len(game_table_rows)} games loaded")
+        ActionChains(driver).send_keys_to_element(game_table_rows[0], Keys.END).perform()
+        time.sleep(1)
+        game_table_rows = driver.find_elements(by=By.XPATH, value="//*[@id='games_table']/tbody/tr")
+    elapsed_time = time.time() - start_time
+    total_games_loaded = len(game_table_rows)
 
-    # for _ in range(20):
-    #     rows = driver.find_elements(by=By.XPATH, value="//*[@id='games_table']/tbody/tr")
-    #     print(f"{len(rows)} rows loaded")
-    #     ActionChains(driver).send_keys_to_element(rows[0], Keys.END).perform()
-    #     time.sleep(0.5)
-
-    return
-
-
-def main_old():
-    driver = webdriver.Chrome()
-    driver.get(PRICECHARTING_URL)
-    driver.implicitly_wait(2)
-
-    game_count = get_game_count(driver)
-
-    games_table = driver.find_element(by=By.ID, value="games_table")
-    game_items = load_items(driver, games_table, game_count)
-
-    parsed_game_data = [parse_item(item, popularity_rank) for popularity_rank, item in enumerate(game_items)]
-
-    driver.quit()
-    print(f"Parsed {len(parsed_game_data)} / {game_count} items.")
-    print(f"First item: {parsed_game_data[0]}")
-    print(f"Last item: {parsed_game_data[-1]}")
+    print(f"Loaded {total_games_loaded}/{game_count} games in {elapsed_time:.3f} seconds")
+    print(f"({elapsed_time/total_games_loaded} seconds/game)")
+    print()
+    print(f"First game text: '{game_table_rows[0].text}'")
+    print(f"Last game text: '{game_table_rows[-1].text}'")
 
 
 def get_game_count(driver: WebDriver) -> int:
