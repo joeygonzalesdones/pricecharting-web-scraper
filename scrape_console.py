@@ -37,6 +37,14 @@ class GameData:
 
 @dataclass
 class ConsoleData:
+    """Groups data for a list of video games belonging to a single console.
+
+    :param console: The console's name
+    :param console_page_url: URL of the console's dedicated page on PriceCharting
+    :param access_time: The time the console's page was accessed for scraping
+    :param game_data_list: A list of objects storing data for the console's games
+    """
+
     console: str
     console_page_url: str
     access_time: datetime
@@ -44,6 +52,12 @@ class ConsoleData:
 
 
 def scrape_console_page(driver: WebDriver) -> ConsoleData:
+    """Scrapes a console page and its list of games to gather pricing data on each game.
+
+    :param driver: The web browser controller
+    :return: An object grouping data for the console and its games
+    """
+
     access_time = datetime.now()
     chart_title_element = driver.find_element(by=By.XPATH, value="//*[@id='highcharts-index']/h2")
     console_name = chart_title_element.text.replace("PriceCharting Index: ", "")
